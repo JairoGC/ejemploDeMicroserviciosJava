@@ -10,8 +10,13 @@
       - currency-network
     depends_on:
       - naming-server
+      - rabbitmq
     environment:
       EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://naming-server:8761/eureka
+      SPRING.ZIPKIN.BASEURL: http://zipkin-server:9411/
+      RABBIT_URI: amqp://guest:guest@rabbitmq:5672
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_ZIPKIN_SENDER_TYPE: rabbit
   
   currency-conversion:
     image: jailux/micro-currency-conversion-service:0.0.1-SNAPSHOT
@@ -22,8 +27,13 @@
       - currency-network
     depends_on:
       - naming-server
+      - rabbitmq
     environment:
-      EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://naming-server:8761/eureka 
+      EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://naming-server:8761/eureka
+      SPRING.ZIPKIN.BASEURL: http://zipkin-server:9411/
+      RABBIT_URI: amqp://guest:guest@rabbitmq:5672
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_ZIPKIN_SENDER_TYPE: rabbit
   
   api-gateway:
     image: jailux/micro-api-gateway:0.0.1-SNAPSHOT
@@ -34,8 +44,13 @@
       - currency-network
     depends_on:
       - naming-server
+      - rabbitmq
     environment:
-      EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://naming-server:8761/eureka 
+      EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://naming-server:8761/eureka
+      SPRING.ZIPKIN.BASEURL: http://zipkin-server:9411/
+      RABBIT_URI: amqp://guest:guest@rabbitmq:5672
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_ZIPKIN_SENDER_TYPE: rabbit
       
   naming-server:
     image: jailux/micro-naming-server:0.0.1-SNAPSHOT
@@ -43,7 +58,27 @@
     ports:
       - "8761:8761"
     networks:
-      - currency-network  
+      - currency-network
       
+  zipkin-server:
+    image: openzipkin/zipkin:2.23
+    mem_limit: 300m
+    ports:
+      - "9411:9411"
+    networks:
+      - currency-network
+    depends_on:
+      - rabbitmq
+    environment:
+      RABBIT_URI: amqp://guest:guest@rabbitmq:5672
+  
+  rabbitmq:
+    image: rabbitmq:3.5.3-management
+    mem_limit: 300m
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - currency-network  
  networks:
   currency-network:
